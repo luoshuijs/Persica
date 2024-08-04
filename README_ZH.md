@@ -7,11 +7,12 @@
 <a href="https://black.readthedocs.io/en/stable/index.html"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="code_style" /></a>
 </div>
 
-# Introduction
-> The name "Persica" is derived from the Latin name of the author's favorite character, known for her distinctive appearance.
+# 介绍
+> Persica 这个名字来源于作者最喜欢的角色的拉丁文名，该角色具有鲜明的外貌特点。
 >
-> "Plum blossoms bloom after the snow, butterflies fly with the spring breeze."
+> *雪霁梅花开，春来蝴蝶飞*。
 
-## Design Inspiration
-The design inspiration for this framework comes from the [Spring Framework](https://github.com/spring-projects/). 
-I am especially impressed by its powerful automatic assembly feature.
+## 设计灵感
+
+本框架的设计灵感来源于 [spring-framework](https://github.com/spring-projects/)
+特别是对于其强大的自动装配功能受到震撼。
