@@ -1,0 +1,2 @@
+class NoSuchParameterException(Exception):
+    pass
