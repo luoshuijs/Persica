@@ -1,4 +1,4 @@
-from typing import Generic, TypeVar, Type, Optional
+from typing import Generic, Optional, Type, TypeVar
 
 T = TypeVar("T", bound=object)
 

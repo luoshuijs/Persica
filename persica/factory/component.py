@@ -7,11 +7,10 @@ class BaseComponent:
     __is_component__: ClassVar[bool] = True
 
     def __init_subclass__(cls, **kwargs):
-        setattr(cls, "__is_component__", kwargs.get("component", True))
+        cls.__is_component__ = kwargs.get("component", True)
 
 
 class AsyncInitComponent(BaseComponent):
-
     async def initialize(self):
         pass
 
@@ -20,5 +19,5 @@ class AsyncInitComponent(BaseComponent):
 
 
 def component(cls: T) -> T:
-    setattr(cls, "__is_component__", True)
+    cls.__is_component__ = True
     return cls

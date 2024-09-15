@@ -1,32 +1,33 @@
+import asyncio
 import logging
 import platform
 import signal
-from typing import Optional, TYPE_CHECKING, Sequence
-
-import asyncio
+from typing import TYPE_CHECKING, Optional, Sequence
 
 from persica.context.application import ApplicationContext
-from persica.context.scanner import ClassScanner
 from persica.factory.abstract import AbstractAutowireCapableFactory
+from persica.scanner.path import ClassPathScanner
 
 if TYPE_CHECKING:
     from asyncio import AbstractEventLoop
 
 
 class Application:
-
-    def __init__(self, loop: "Optional[AbstractEventLoop]" = None, ) -> None:
+    def __init__(
+        self,
+        loop: "Optional[AbstractEventLoop]" = None,
+    ) -> None:
         self.loop = loop or asyncio.get_event_loop()
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.context = ApplicationContext()
         self.factory = AbstractAutowireCapableFactory()
-        self.class_scanner = ClassScanner(self.factory)
+        self.class_scanner = ClassPathScanner()
+        self.context = ApplicationContext(factory=self.factory, class_scanner=self.class_scanner)
 
     def run(self) -> None:
-        pass
+        self.context.run()
+        self.__run()
 
-    def _run(self, stop_signals: Optional[Sequence[int]] = None) -> None:
-
+    def __run(self, stop_signals: Optional[Sequence[int]] = None) -> None:
         if platform.system() != "Windows":
             stop_signals = (signal.SIGINT, signal.SIGTERM, signal.SIGABRT)
         if stop_signals is not None:
@@ -47,7 +48,7 @@ class Application:
         raise SystemExit()
 
     async def initialize(self) -> None:
-        pass
+        await self.context.initialize()
 
     async def shutdown(self) -> None:
-        pass
+        await self.context.shutdown()
