@@ -15,3 +15,7 @@
 ## Design Inspiration
 The design inspiration for this framework comes from the [Spring Framework](https://github.com/spring-projects/). 
 I am especially impressed by its powerful automatic assembly feature.
+
+## Future
+- [ ] Support full path scanning
+- [ ] Support custom factory assembly

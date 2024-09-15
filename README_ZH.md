@@ -16,3 +16,7 @@
 
 本框架的设计灵感来源于 [spring-framework](https://github.com/spring-projects/)
 特别是对于其强大的自动装配功能受到震撼。
+
+## Future
+- [ ] 支持完整路径扫描
+- [ ] 支持自定义工厂装配
