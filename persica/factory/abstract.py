@@ -23,13 +23,13 @@ class AbstractAutowireCapableFactory:
     # 实例化的工厂
     singleton_factory: Dict[Type[InterfaceFactory], InterfaceFactory] = {}
     # 附加类型
-    resolvable_objects: Dict[Type[object], object] = []
+    resolvable_objects: Dict[Type[object], object] = {}
 
     def __init__(self, resolvable_objects: Optional[Iterable[object]] = None):
         if resolvable_objects is not None:
             for k in resolvable_objects:
                 original_class: "Type[object]" = k.__class__
-                self.resolvable_objects[original_class] = k
+                self.resolvable_objects.setdefault(original_class, k)
 
     def instantiate_object(self):
         self._logger.info("Instantiate Object")

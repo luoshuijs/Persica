@@ -2,14 +2,21 @@ import asyncio
 from typing import TYPE_CHECKING, Any, Callable, Coroutine
 
 from persica.factory.component import AsyncInitializingComponent
+from persica.utils.logging import get_logger
 
 if TYPE_CHECKING:
+    from logging import Logger
+
     from persica.factory.abstract import AbstractAutowireCapableFactory
     from persica.factory.registry import DefinitionRegistry
     from persica.scanner.path import ClassPathScanner
 
+_LOGGER = get_logger(__name__, "DefinitionRegistry")
+
 
 class ApplicationContext:
+    _logger: "Logger" = _LOGGER
+
     def __init__(
         self,
         factory: "AbstractAutowireCapableFactory",

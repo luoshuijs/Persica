@@ -1,5 +1,5 @@
 from importlib import import_module
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING, Dict, Optional, Type
 
 from persica.factory.component import BaseComponent
 from persica.factory.definition import ObjectDefinition
@@ -47,7 +47,10 @@ class DefinitionRegistry:
                 raise e
 
     def _registry_class(self):
-        for obj in BaseComponent.__subclasses__():
-            self.factory.object_definition_map.setdefault(obj, ObjectDefinition(obj))
-        for obj in InterfaceFactory.__subclasses__():
-            self.factory.object_definition_map.setdefault(obj, ObjectDefinition(obj, True))
+        self._registry_base_class(BaseComponent)
+        self._registry_base_class(InterfaceFactory, True)
+
+    def _registry_base_class(self, _class: Type[object], is_factory: Optional[bool] = None):
+        for _cls in _class.__subclasses__():
+            self.factory.object_definition_map.setdefault(_cls, ObjectDefinition(_cls, is_factory))
+            self._registry_base_class(_cls)
