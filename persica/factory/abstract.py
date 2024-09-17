@@ -60,9 +60,9 @@ class AbstractAutowireCapableFactory:
                 # 判断是否为工厂
                 if _object_definition.is_factory:
                     _factory_cls = cast(Type[InterfaceFactory], key)
-                    # 判断这个工厂是否为 class_object 的工厂
-                    if _factory_cls.object_to_assemble == _cls:
-                        # 如果存在对工厂进行h获取
+                    # 判断这个工厂是否为 _cls 的工厂 或者是 包括 _cls 的子类
+                    if issubclass(_cls, _factory_cls.object_to_assemble):
+                        # 如果存在对工厂进行获取
                         _factory = self.singleton_factory.get(_factory_cls)
                         # 工厂如果没实例化对这个工厂进行实例化
                         if _factory is None:
