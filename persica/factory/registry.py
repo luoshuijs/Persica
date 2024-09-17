@@ -1,8 +1,7 @@
-import asyncio
 from importlib import import_module
-from typing import TYPE_CHECKING, Any, Callable, Coroutine, Dict
+from typing import TYPE_CHECKING, Dict
 
-from persica.factory.component import AsyncInitializingComponent, BaseComponent
+from persica.factory.component import BaseComponent
 from persica.factory.definition import ObjectDefinition
 from persica.factory.interface import InterfaceFactory
 from persica.utils.logging import get_logger
@@ -29,9 +28,11 @@ class DefinitionRegistry:
         self._registry_class()
 
     def _import_module(self):
-        for module_name in self.class_scanner.get_module("persica.factory.BaseComponent"):
+        for module_name in self.class_scanner.get_module("persica.factory.component.BaseComponent"):
             self.__import_module(module_name)
-        for module_name in self.class_scanner.get_module("persica.factory.AsyncInitializingComponent"):
+        for module_name in self.class_scanner.get_module("persica.factory.component.AsyncInitializingComponent"):
+            self.__import_module(module_name)
+        for module_name in self.class_scanner.get_module("persica.factory.interface.InterfaceFactory"):
             self.__import_module(module_name)
 
     def __import_module(self, module_name: str):
@@ -46,36 +47,7 @@ class DefinitionRegistry:
                 raise e
 
     def _registry_class(self):
-        for obj in object.__subclasses__():
-            if issubclass(obj, BaseComponent):
-                self.factory.object_definition_map.setdefault(obj, ObjectDefinition(obj))
-            if issubclass(obj, InterfaceFactory):
-                self.factory.object_definition_map.setdefault(obj, ObjectDefinition(obj, True))
-
-    async def initialize(self):
-        _futures = []
-        for _, value in self.factory.singleton_factory.items():
-            if isinstance(value, AsyncInitializingComponent):
-                _futures.append(self._run_async(value.initialize))
-        for _, value in self.factory.singleton_objects.items():
-            if isinstance(value, AsyncInitializingComponent):
-                _futures.append(self._run_async(value.initialize))
-
-        await asyncio.gather(*_futures)
-
-    async def shutdown(self):
-        _futures = []
-        for _, value in self.factory.singleton_factory.items():
-            if isinstance(value, AsyncInitializingComponent):
-                _futures.append(self._run_async(value.shutdown))
-        for _, value in self.factory.singleton_objects.items():
-            if isinstance(value, AsyncInitializingComponent):
-                _futures.append(self._run_async(value.shutdown))
-
-        await asyncio.gather(*_futures)
-
-    async def _run_async(self, func: Callable[..., Coroutine[Any, Any, Any]]):
-        try:
-            await func()
-        except Exception as e:
-            self._logger.error(e)
+        for obj in BaseComponent.__subclasses__():
+            self.factory.object_definition_map.setdefault(obj, ObjectDefinition(obj))
+        for obj in InterfaceFactory.__subclasses__():
+            self.factory.object_definition_map.setdefault(obj, ObjectDefinition(obj, True))

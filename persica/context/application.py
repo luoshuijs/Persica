@@ -1,4 +1,7 @@
-from typing import TYPE_CHECKING
+import asyncio
+from typing import TYPE_CHECKING, Any, Callable, Coroutine
+
+from persica.factory.component import AsyncInitializingComponent
 
 if TYPE_CHECKING:
     from persica.factory.abstract import AbstractAutowireCapableFactory
@@ -26,7 +29,35 @@ class ApplicationContext:
         self.factory.instantiate_object()
 
     async def initialize(self):
-        await self.registry.initialize()
+        await self._initialize()
 
     async def shutdown(self) -> None:
-        await self.registry.shutdown()
+        await self._shutdown()
+
+    async def _initialize(self):
+        _futures = []
+        for _, value in self.factory.singleton_factory.items():
+            if isinstance(value, AsyncInitializingComponent):
+                _futures.append(self._run_async(value.initialize))
+        for _, value in self.factory.singleton_objects.items():
+            if isinstance(value, AsyncInitializingComponent):
+                _futures.append(self._run_async(value.initialize))
+
+        await asyncio.gather(*_futures)
+
+    async def _shutdown(self):
+        _futures = []
+        for _, value in self.factory.singleton_factory.items():
+            if isinstance(value, AsyncInitializingComponent):
+                _futures.append(self._run_async(value.shutdown))
+        for _, value in self.factory.singleton_objects.items():
+            if isinstance(value, AsyncInitializingComponent):
+                _futures.append(self._run_async(value.shutdown))
+
+        await asyncio.gather(*_futures)
+
+    async def _run_async(self, func: Callable[..., Coroutine[Any, Any, Any]]):
+        try:
+            await func()
+        except Exception as e:
+            self._logger.error(e)
