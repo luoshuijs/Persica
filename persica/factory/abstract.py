@@ -31,9 +31,6 @@ class AbstractAutowireCapableFactory:
                 original_class: "Type[object]" = k.__class__
                 self.resolvable_objects[original_class] = k
 
-    def register_object_definition(self, definition: ObjectDefinition) -> None:
-        pass
-
     def instantiate_object(self):
         self._logger.info("Instantiate Object")
 
@@ -41,45 +38,45 @@ class AbstractAutowireCapableFactory:
             self._get_object(value)
 
     def _get_object(self, definition: ObjectDefinition):
-        class_object = definition.class_object
+        __cls = definition.class_object
 
         if definition.is_factory:
-            class_object = cast(Type[InterfaceFactory], class_object)
-            obj = self.singleton_factory.get(class_object)
-            if obj is None:
-                return self._create_object(class_object)
+            __cls = cast(Type[InterfaceFactory], __cls)
+            __obj = self.singleton_factory.get(__cls)
+            if __obj is None:
+                return self._create_object(__cls)
         else:
-            obj = self.singleton_objects.get(class_object)
-            if obj is None:
-                return self._create_object(class_object)
+            __obj = self.singleton_objects.get(__cls)
+            if __obj is None:
+                return self._create_object(__cls)
 
-    def _create_object(self, class_object: Type[object]) -> object:
-        self._logger.info("create object %s", class_object.__name__)
-        # 检查这个 class_object 是否需要指定工厂初始化或者管理
-        factory = self.factory_object_cache.get(class_object)
-        if factory is None:
+    def _create_object(self, __cls: Type[object]) -> object:
+        self._logger.info("create object %s", __cls.__name__)
+        # 检查这个 class_object 是否需要指定工厂管理
+        factory_object = self.factory_object_cache.get(__cls)
+        if factory_object is None:
             # 遍历 object_definition_nmap 查找是否有对应的工厂
             for key, _object_definition in self.object_definition_map.items():
                 # 判断是否为工厂
                 if _object_definition.is_factory:
-                    key = cast(Type[InterfaceFactory], key)
+                    _factory_cls = cast(Type[InterfaceFactory], key)
                     # 判断这个工厂是否为 class_object 的工厂
-                    if key.object_to_assemble == class_object:
+                    if _factory_cls.object_to_assemble == __cls:
                         # 如果存在对工厂进行h获取
-                        _factory = self.singleton_factory.get(key)
+                        _factory = self.singleton_factory.get(_factory_cls)
                         # 工厂如果没实例化对这个工厂进行实例化
                         if _factory is None:
-                            _factory = self._create_object(key.object_to_assemble)
-                            factory = cast(InterfaceFactory, _factory)
-                            self.factory_object_cache[class_object] = factory
-                            self.singleton_factory[key] = factory
+                            _factory_obj = self._create_object(_factory_cls.object_to_assemble)
+                            factory_object = cast(InterfaceFactory, _factory)
+                            self.factory_object_cache[__cls] = factory_object
+                            self.singleton_factory[_factory_cls] = factory_object
                         break
         # 解析函数
         params = {}
         try:
-            signature = inspect.signature(class_object.__init__)
+            signature = inspect.signature(__cls.__init__)
         except ValueError as exc:
-            self._logger.info("Module %s get initialize signature error", class_object.__name__)
+            self._logger.info("Module %s get initialize signature error", __cls.__name__)
             raise exc
         for name, parameter in signature.parameters.items():
             if name in ("self", "args", "kwargs"):
@@ -103,19 +100,19 @@ class AbstractAutowireCapableFactory:
                     instantiate = self._create_object(object_definition.class_object)
                     self.singleton_objects[object_definition.class_object] = instantiate
             if instantiate is None:
-                # 怎么样检查参数不存在 该抛出异常
+                # 参数不存在 抛出异常
                 raise NoSuchParameterException(
                     f"Cannot find the {name} parameter of type {annotation.__name__} required "
-                    f"by the {class_object.__name__} component"
+                    f"by the {__cls.__name__} component"
                 )
             params[name] = instantiate
         # 将依赖项通过构造器注入到使用它的类中
-        instantiation = class_object(**params)
+        __obj = __cls(**params)
         # 判断这个类是否归工厂管理 如果归则调用 get_object
-        if factory is not None:
-            _instantiation = factory.get_object(instantiation)
+        if factory_object is not None:
+            _instantiation = factory_object.get_object(__obj)
             if _instantiation is not None:
-                self.singleton_objects[class_object] = instantiation
+                self.singleton_objects[__cls] = __obj
                 return _instantiation
-        self.singleton_objects[class_object] = instantiation
-        return instantiation
+        self.singleton_objects[__cls] = __obj
+        return __obj

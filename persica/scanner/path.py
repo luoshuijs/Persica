@@ -1,6 +1,6 @@
 import ast
 from pathlib import Path
-from typing import Iterator
+from typing import Iterator, Optional
 
 from networkx import NetworkXError
 
@@ -9,11 +9,14 @@ from persica.scanner.visitor import ClassVisitor
 
 
 class ClassPathScanner:
-    def __init__(self):
+    def __init__(self, default_directory: Optional[str] = None):
         self.class_graph = ClassGraph()
+        self.default_directory = default_directory
 
-    def flash(self):
-        self.parse_directory()
+    def flash(self, directory: Optional[str] = None):
+        directory = directory or self.default_directory
+        if directory is not None:
+            self.parse_directory(directory)
 
     def parse_directory(self, directory):
         path = Path(directory)
@@ -25,7 +28,7 @@ class ClassPathScanner:
             tree = ast.parse(content, filename=file_path)
             visitor.visit(tree)
 
-    def get_module(self, superclass_name: str = "persica.factory.BaseComponent") -> Iterator[str]:
+    def get_module(self, superclass_name: str) -> Iterator[str]:
         try:
             all_descendants = self.class_graph.find_all_descendants(superclass_name)
             for full_class_path in all_descendants:
