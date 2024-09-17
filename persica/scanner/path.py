@@ -12,6 +12,9 @@ class ClassPathScanner:
     def __init__(self):
         self.class_graph = ClassGraph()
 
+    def flash(self):
+        self.parse_directory()
+
     def parse_directory(self, directory):
         path = Path(directory)
         for file_path in path.rglob("*.py"):

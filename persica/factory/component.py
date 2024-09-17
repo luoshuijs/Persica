@@ -10,7 +10,7 @@ class BaseComponent:
         cls.__is_component__ = kwargs.get("component", True)
 
 
-class AsyncInitComponent(BaseComponent):
+class AsyncInitializingComponent(BaseComponent):
     async def initialize(self):
         pass
 
