@@ -68,8 +68,10 @@ class AbstractAutowireCapableFactory:
                         if _factory is None:
                             _factory_obj = self._create_object(_factory_cls)
                             factory_object = cast(InterfaceFactory, _factory_obj)
-                            self.factory_object_cache[_cls] = factory_object
-                            self.singleton_factory[_factory_cls] = factory_object
+                        else:
+                            factory_object = _factory
+                        self.factory_object_cache[_cls] = factory_object
+                        self.singleton_factory[_factory_cls] = factory_object
                         break
         # 解析函数
         params: Dict[str, Any] = {}
