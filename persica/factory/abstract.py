@@ -61,7 +61,7 @@ class AbstractAutowireCapableFactory:
                 if _object_definition.is_factory:
                     _factory_cls = cast(Type[InterfaceFactory], key)
                     # 判断这个工厂是否为 _cls 的工厂 或者是 包括 _cls 的子类
-                    if issubclass(_cls, _factory_cls.object_to_assemble):
+                    if issubclass(_cls, _factory_cls.get_object()):
                         # 如果存在对工厂进行获取
                         _factory = self.singleton_factory.get(_factory_cls)
                         # 工厂如果没实例化对这个工厂进行实例化
@@ -110,7 +110,7 @@ class AbstractAutowireCapableFactory:
         _obj = _cls(**params)
         # 判断这个类是否归工厂管理 如果归则调用 get_object
         if factory_object is not None:
-            _instantiation = factory_object.get_object(_obj)
+            _instantiation = factory_object.get_objects(_obj)
             if _instantiation is not None:
                 self.singleton_objects[_cls] = _obj
                 return _instantiation
