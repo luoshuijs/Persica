@@ -67,4 +67,4 @@ class ApplicationContext:
         try:
             await func()
         except Exception as e:
-            self._logger.error(e)
+            self._logger.exception(e)
