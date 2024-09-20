@@ -73,10 +73,10 @@ class AbstractAutowireCapableFactory:
                         self.factory_object_cache[_cls] = factory_object
                         self.singleton_factory[_factory_cls] = factory_object
                         break
-        # 解析函数
+        # 解析函数 inspect.signature 函数中 eval_str 参数为 True 支持字符串类型注解的反字符化 该参数只在Python3.10版本支持
         params: Dict[str, Any] = {}
         try:
-            signature = inspect.signature(_cls.__init__)
+            signature = inspect.signature(_cls.__init__, eval_str=True)
         except ValueError as exc:
             self._logger.info("Module %s get initialize signature error", _cls.__name__)
             raise exc
