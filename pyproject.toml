@@ -1,7 +1,10 @@
 [project]
 name = "persica"
-version = "0.1.0"
-description = "Add your description here"
+version = "0.1.0a1"
+authors = [
+    {name = "luoshuijs", email = "luoshuijs@outlook.com"},
+]
+description = "Automatic framework for Pythone"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -13,6 +16,13 @@ dev-dependencies = [
     "black>=24.8.0",
     "ruff>=0.6.4",
 ]
+
+[tool.hatch.build]
+packages = ["persica"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.ruff]
 exclude = [
