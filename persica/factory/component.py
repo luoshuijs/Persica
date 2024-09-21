@@ -1,14 +1,8 @@
-from typing import ClassVar, TypeVar
-
-T = TypeVar("T")
 DEFAULT_ORDER: int = 0
 
 
 class BaseComponent:
-    __is_component__: ClassVar[bool] = True
-
-    def __init_subclass__(cls, **kwargs):
-        cls.__is_component__ = kwargs.get("component", True)
+    pass
 
 
 class AsyncInitializingComponent(BaseComponent):
@@ -25,8 +19,3 @@ class AsyncInitializingComponent(BaseComponent):
 
     async def shutdown(self):
         pass
-
-
-def component(cls: T) -> T:
-    cls.__is_component__ = True
-    return cls
