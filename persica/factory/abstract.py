@@ -34,6 +34,10 @@ class AbstractAutowireCapableFactory:
                 original_class = obj.__class__
                 self.external_objects.setdefault(original_class, obj)
 
+    def add_external_object(self, external_objects: object):
+        original_class = external_objects.__class__
+        self.external_objects.setdefault(original_class, external_objects)
+
     def instantiate_all_objects(self):
         """
         实例化 object_definitions 中所有的对象。

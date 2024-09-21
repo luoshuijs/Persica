@@ -33,6 +33,8 @@ class Application:
         self.class_scanner = class_scanner
         self.registry = registry
         self.context = context_class(factory=self.factory, class_scanner=self.class_scanner, registry=self.registry)
+        self.factory.add_external_object(self.context)
+        self.factory.add_external_object(self)
 
     def run(self) -> None:
         self._logger.info("Application Run")
