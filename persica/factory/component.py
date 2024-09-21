@@ -1,6 +1,7 @@
-from typing import ClassVar, TypeVar
+from typing import ClassVar, Optional, TypeVar
 
 T = TypeVar("T")
+DEFAULT_ORDER: int = 0
 
 
 class BaseComponent:
@@ -11,6 +12,14 @@ class BaseComponent:
 
 
 class AsyncInitializingComponent(BaseComponent):
+    order: Optional[int] = DEFAULT_ORDER
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__()
+        order = kwargs.get("order")
+        if order is not None:
+            cls.order = order
+
     async def initialize(self):
         pass
 

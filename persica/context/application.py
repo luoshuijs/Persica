@@ -1,4 +1,5 @@
 import asyncio
+from collections import defaultdict
 from typing import TYPE_CHECKING, Any, Callable, Coroutine
 
 from persica.factory.component import AsyncInitializingComponent
@@ -36,32 +37,23 @@ class ApplicationContext:
         self.factory.instantiate_all_objects()
 
     async def initialize(self):
-        await self._initialize()
+        await self._process_components("initialize")
 
     async def shutdown(self) -> None:
-        await self._shutdown()
+        await self._process_components("shutdown")
 
-    async def _initialize(self):
-        _futures = []
-        for _, value in self.factory.singleton_factories.items():
-            if isinstance(value, AsyncInitializingComponent):
-                _futures.append(self._run_async(value.initialize))
-        for _, value in self.factory.singleton_objects.items():
-            if isinstance(value, AsyncInitializingComponent):
-                _futures.append(self._run_async(value.initialize))
+    async def _process_components(self, method_name: str):
+        components_by_order = defaultdict(list)
 
-        await asyncio.gather(*_futures)
+        for component_dict in [self.factory.singleton_factories, self.factory.singleton_objects]:
+            for _, value in component_dict.items():
+                if isinstance(value, AsyncInitializingComponent):
+                    method = getattr(value, method_name)
+                    components_by_order[value.order].append(self._run_async(method))
 
-    async def _shutdown(self):
-        _futures = []
-        for _, value in self.factory.singleton_factories.items():
-            if isinstance(value, AsyncInitializingComponent):
-                _futures.append(self._run_async(value.shutdown))
-        for _, value in self.factory.singleton_objects.items():
-            if isinstance(value, AsyncInitializingComponent):
-                _futures.append(self._run_async(value.shutdown))
-
-        await asyncio.gather(*_futures)
+        for order in sorted(components_by_order.keys()):
+            tasks = components_by_order[order]
+            await asyncio.gather(*tasks)
 
     async def _run_async(self, func: Callable[..., Coroutine[Any, Any, Any]]):
         try:
