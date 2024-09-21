@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional, Self, Type
+from typing import TYPE_CHECKING, List, Optional, Self, Type
 
 from persica.application import Application
 from persica.context.application import ApplicationContext
@@ -19,7 +19,7 @@ class ApplicationBuilder:
 
     def __init__(self):
         self._loop: "Optional[AbstractEventLoop]" = None
-        self._scanner_packages: Optional[str] = None
+        self._scanner_packages: List[str] = []
 
     def set_application_context_class(self, __cls: Type["ApplicationContext"]) -> Self:
         self._application_context_class = __cls
@@ -29,8 +29,12 @@ class ApplicationBuilder:
         self._loop = loop
         return self
 
-    def set_scanner_packages(self, packages: str) -> Self:
-        self._scanner_packages = packages
+    def set_scanner_package(self, package: str) -> Self:
+        self._scanner_packages.append(package)
+        return self
+
+    def set_scanner_packages(self, packages: List[str]) -> Self:
+        self._scanner_packages.extend(packages)
         return self
 
     def build(self):
