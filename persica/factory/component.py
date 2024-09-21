@@ -12,13 +12,13 @@ class BaseComponent:
 
 
 class AsyncInitializingComponent(BaseComponent):
-    order: int = DEFAULT_ORDER
+    __order__: int = DEFAULT_ORDER
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         order = kwargs.get("order")
         if order is not None:
-            cls.order = order
+            cls.__order__ = order
 
     async def initialize(self):
         pass

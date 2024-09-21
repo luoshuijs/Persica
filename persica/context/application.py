@@ -49,7 +49,7 @@ class ApplicationContext:
             for _, value in component_dict.items():
                 if isinstance(value, AsyncInitializingComponent):
                     method = getattr(value, method_name)
-                    components_by_order[value.order].append(self._run_async(method))
+                    components_by_order[value.__order__].append(self._run_async(method))
 
         for order in sorted(components_by_order.keys()):
             tasks = components_by_order[order]
