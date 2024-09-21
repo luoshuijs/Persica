@@ -1,7 +1,7 @@
 import ast
 from importlib.util import find_spec
 from pkgutil import walk_packages
-from typing import TYPE_CHECKING, Iterator, List, Optional
+from typing import TYPE_CHECKING, List, Optional, Set
 
 from networkx import NetworkXError
 
@@ -69,11 +69,8 @@ class ClassPathScanner:
             visitor = ClassVisitor(self.class_graph, module_info.name)
             visitor.visit(tree)
 
-    def get_module(self, superclass_name: str) -> Iterator[str]:
+    def get_modules_to_import(self, superclass_name: str) -> Set[str]:
         try:
-            all_descendants = self.class_graph.find_all_descendants(superclass_name)
-            for full_class_path in all_descendants:
-                module_path, _ = full_class_path.rsplit(".", 1)
-                yield module_path
-        except NetworkXError:
-            pass
+            return self.class_graph.get_modules_to_import(superclass_name)
+        except NetworkXError as exc:
+            raise RuntimeError("Get Modules Error") from exc
