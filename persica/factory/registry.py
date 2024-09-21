@@ -28,11 +28,11 @@ class DefinitionRegistry:
         self._registry_class()
 
     def _import_module(self):
-        for module_name in self.class_scanner.get_module("persica.factory.component.BaseComponent"):
+        for module_name in self.class_scanner.get_modules_to_import("persica.factory.component.BaseComponent"):
             self.__import_module(module_name)
-        for module_name in self.class_scanner.get_module("persica.factory.component.AsyncInitializingComponent"):
+        for module_name in self.class_scanner.get_modules_to_import("persica.factory.component.AsyncInitializingComponent"):
             self.__import_module(module_name)
-        for module_name in self.class_scanner.get_module("persica.factory.interface.InterfaceFactory"):
+        for module_name in self.class_scanner.get_modules_to_import("persica.factory.interface.InterfaceFactory"):
             self.__import_module(module_name)
 
     def __import_module(self, module_name: str):
