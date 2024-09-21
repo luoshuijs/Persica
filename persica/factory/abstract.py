@@ -14,107 +14,134 @@ _LOGGER = get_logger(__name__, "AbstractAutowireCapableFactory")
 
 class AbstractAutowireCapableFactory:
     _logger: "Logger" = _LOGGER
-    # 相关定义
-    object_definition_map: Dict[Type[object], ObjectDefinition] = {}
-    # 工厂缓存映射
-    factory_object_cache: Dict[Type[object], Union[InterfaceFactory]] = {}
-    # 实例化的类型
+    # 存储对象定义的映射表，key 为对象的类，value 为 ObjectDefinition
+    object_definitions: Dict[Type[object], ObjectDefinition] = {}
+    # 工厂缓存，缓存已经创建的工厂对象，key 为对象的类，value 为工厂实例
+    factory_cache: Dict[Type[object], Union[InterfaceFactory]] = {}
+    # 存储已经实例化的单例对象，key 为对象的类，value 为对象实例
     singleton_objects: Dict[Type[object], object] = {}
-    # 实例化的工厂
-    singleton_factory: Dict[Type[InterfaceFactory], InterfaceFactory] = {}
-    # 附加类型
-    resolvable_objects: Dict[Type[object], object] = {}
+    # 存储已经实例化的工厂对象，key 为工厂类，value 为工厂实例
+    singleton_factories: Dict[Type[InterfaceFactory], InterfaceFactory] = {}
+    # 存储外部可注入的对象，key 为对象的类，value 为对象实例
+    external_objects: Dict[Type[object], object] = {}
 
-    def __init__(self, resolvable_objects: Optional[Iterable[object]] = None):
-        if resolvable_objects is not None:
-            for k in resolvable_objects:
-                original_class: "Type[object]" = k.__class__
-                self.resolvable_objects.setdefault(original_class, k)
+    def __init__(self, external_objects: Optional[Iterable[object]] = None):
+        """
+        初始化工厂，允许外部传入可解析的对象，并将它们存入 external_objects。
+        """
+        if external_objects is not None:
+            for obj in external_objects:
+                original_class = obj.__class__
+                self.external_objects.setdefault(original_class, obj)
 
-    def instantiate_object(self):
-        self._logger.info("Instantiate Object")
+    def instantiate_all_objects(self):
+        """
+        实例化 object_definitions 中所有的对象。
+        """
+        self._logger.info("Instantiating all objects")
+        for definition in self.object_definitions.values():
+            self.get_object(definition.class_object)
 
-        for _, value in self.object_definition_map.items():
-            self._get_object(value)
-
-    def _get_object(self, definition: ObjectDefinition):
-        __cls = definition.class_object
+    def get_object(self, cls: Type[object]):
+        """
+        根据类获取对象实例，如果未创建则调用 create_object 方法创建。
+        """
+        definition = self.object_definitions.get(cls)
+        if definition is None:
+            self._logger.warning("No definition found for class %s", cls.__name__)
+            return None
 
         if definition.is_factory:
-            __cls = cast(Type[InterfaceFactory], __cls)
-            __obj = self.singleton_factory.get(__cls)
-            if __obj is None:
-                return self._create_object(__cls)
+            # 如果对象定义是工厂，则获取或创建工厂对象
+            cls = cast(Type[InterfaceFactory], cls)
+            obj = self.singleton_factories.get(cls)
+            if obj is None:
+                return self.create_object(cls)
         else:
-            __obj = self.singleton_objects.get(__cls)
-            if __obj is None:
-                return self._create_object(__cls)
+            # 如果对象定义不是工厂，则获取或创建单例对象
+            obj = self.singleton_objects.get(cls)
+            if obj is None:
+                return self.create_object(cls)
 
-    def _create_object(self, _cls: Type[object]) -> object:
-        self._logger.info("create object %s", _cls.__name__)
-        # 检查这个 class_object 是否需要指定工厂管理
-        factory_object = self.factory_object_cache.get(_cls)
-        if factory_object is None:
-            # 遍历 object_definition_nmap 查找是否有对应的工厂
-            for key, _object_definition in self.object_definition_map.items():
-                # 判断是否为工厂
-                if _object_definition.is_factory:
-                    _factory_cls = cast(Type[InterfaceFactory], key)
-                    # 判断这个工厂是否为 _cls 的工厂 或者是 包括 _cls 的子类
-                    if issubclass(_cls, _factory_cls.get_object()):
-                        # 如果存在对工厂进行获取
-                        _factory = self.singleton_factory.get(_factory_cls)
-                        # 工厂如果没实例化对这个工厂进行实例化
-                        if _factory is None:
-                            _factory_obj = self._create_object(_factory_cls)
-                            factory_object = cast(InterfaceFactory, _factory_obj)
+    def create_object(self, cls: Type[object]) -> object:
+        """
+        创建一个对象实例，支持依赖注入和工厂管理。
+        """
+        self._logger.info("Creating object %s", cls.__name__)
+        # 查找是否有该类的工厂
+        factory = self._find_factory_for_class(cls)
+        # 构建构造函数参数
+        params = self._build_constructor_params(cls)
+        # 创建对象
+        obj = cls(**params)
+        # 如果该类有工厂管理，则通过工厂获取实例
+        if factory is not None:
+            instance = factory.get_object(obj)
+            if instance is not None:
+                self.singleton_objects[cls] = obj
+                return instance
+        # 如果没有工厂管理，直接返回对象
+        self.singleton_objects[cls] = obj
+        return obj
+
+    def _find_factory_for_class(self, cls: Type[object]) -> Optional[InterfaceFactory]:
+        """
+        查找与给定类对应的工厂，如果没有找到则返回 None。
+        """
+        # 先检查工厂缓存中是否存在
+        factory = self.factory_cache.get(cls)
+        if factory is None:
+            # 遍历 object_definitions 查找是否有与该类对应的工厂
+            for key, definition in self.object_definitions.items():
+                if definition.is_factory:
+                    factory_cls = cast(Type[InterfaceFactory], key)
+                    # 判断该类是否是工厂管理的类或其子类
+                    if issubclass(cls, factory_cls.get_class()):
+                        factory_instance = self.singleton_factories.get(factory_cls)
+                        if factory_instance is None:
+                            factory_instance = self.create_object(factory_cls)
+                            factory = cast(InterfaceFactory, factory_instance)
                         else:
-                            factory_object = _factory
-                        self.factory_object_cache[_cls] = factory_object
-                        self.singleton_factory[_factory_cls] = factory_object
+                            factory = factory_instance
+                        # 缓存工厂实例
+                        self.factory_cache[cls] = factory
+                        self.singleton_factories[factory_cls] = factory
                         break
-        # 解析函数 inspect.signature 函数中 eval_str 参数为 True 支持字符串类型注解的反字符化 该参数只在Python3.10版本支持
-        params: Dict[str, Any] = {}
+        return factory
+
+    def _build_constructor_params(self, cls: Type[object]) -> Dict[str, Any]:
+        """
+        构建构造函数参数，支持依赖注入和默认值处理。
+        """
         try:
-            signature = inspect.signature(_cls.__init__, eval_str=True)
+            # 获取构造函数签名，并设置 eval_str=True 以支持 Python 3.10+ 的字符串注解
+            signature = inspect.signature(cls.__init__, eval_str=True)
         except ValueError as exc:
-            self._logger.info("Module %s get initialize signature error", _cls.__name__)
+            self._logger.error("Failed to retrieve __init__ signature for %s: %s", cls.__name__, exc)
             raise exc
+
+        params: Dict[str, Any] = {}
         for name, parameter in signature.parameters.items():
-            if name in ("self", "args", "kwargs"):
-                continue
-            if parameter.default != inspect.Parameter.empty:
-                params[name] = parameter.default
-            else:
-                params[name] = None
-        # 构建构造器注入所需要的参数
-        for name, parameter in signature.parameters.items():
+            # 跳过 'self', 'args', 'kwargs'
             if name in ("self", "args", "kwargs"):
                 continue
             annotation = parameter.annotation
-            instantiate = self.singleton_objects.get(annotation)
-            if instantiate is None:
-                instantiate = self.resolvable_objects.get(annotation)
-            if instantiate is None:
-                object_definition = self.object_definition_map.get(annotation)
-                # 如果依赖未初始化 则创建依赖项
+            # 从单例缓存或外部对象中获取依赖对象实例
+            instance = self.singleton_objects.get(annotation) or self.external_objects.get(annotation)
+            # 如果没有找到依赖对象，尝试创建
+            if instance is None:
+                object_definition = self.object_definitions.get(annotation)
                 if object_definition is not None:
-                    instantiate = self._create_object(object_definition.class_object)
-                    self.singleton_objects[object_definition.class_object] = instantiate
-            if instantiate is None:
-                # 参数不存在 抛出异常
-                raise NoSuchParameterException(
-                    f"Cannot find the {name} parameter of type {annotation.__name__} required "
-                    f"by the {_cls.__name__} component"
-                )
-            params[name] = instantiate
-        # 将依赖项通过构造器注入到使用它的类中
-        _obj = _cls(**params)
-        # 判断这个类是否归工厂管理 如果归则调用 get_object
-        if factory_object is not None:
-            _instantiation = factory_object.get_objects(_obj)
-            if _instantiation is not None:
-                self.singleton_objects[_cls] = _obj
-                return _instantiation
-        self.singleton_objects[_cls] = _obj
-        return _obj
+                    instance = self.create_object(object_definition.class_object)
+                    self.singleton_objects[object_definition.class_object] = instance
+            # 如果依然没有找到，检查参数是否有默认值
+            if instance is None:
+                if parameter.default != inspect.Parameter.empty:
+                    instance = parameter.default
+                else:
+                    raise NoSuchParameterException(
+                        f"Cannot find the {name} parameter of type {annotation.__name__} required "
+                        f"by the {cls.__name__} component"
+                    )
+            params[name] = instance
+        return params

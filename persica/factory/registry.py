@@ -30,7 +30,9 @@ class DefinitionRegistry:
     def _import_module(self):
         for module_name in self.class_scanner.get_modules_to_import("persica.factory.component.BaseComponent"):
             self.__import_module(module_name)
-        for module_name in self.class_scanner.get_modules_to_import("persica.factory.component.AsyncInitializingComponent"):
+        for module_name in self.class_scanner.get_modules_to_import(
+            "persica.factory.component.AsyncInitializingComponent"
+        ):
             self.__import_module(module_name)
         for module_name in self.class_scanner.get_modules_to_import("persica.factory.interface.InterfaceFactory"):
             self.__import_module(module_name)
@@ -52,5 +54,5 @@ class DefinitionRegistry:
 
     def _registry_base_class(self, _class: Type[object], is_factory: Optional[bool] = None):
         for _cls in _class.__subclasses__():
-            self.factory.object_definition_map.setdefault(_cls, ObjectDefinition(_cls, is_factory))
+            self.factory.object_definitions.setdefault(_cls, ObjectDefinition(_cls, is_factory))
             self._registry_base_class(_cls)

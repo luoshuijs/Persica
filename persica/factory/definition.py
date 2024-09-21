@@ -2,6 +2,10 @@ from typing import Optional, Type
 
 
 class ObjectDefinition:
+    """
+    定义对象的结构，包括对象的类和是否是工厂。
+    """
+
     class_object: Type[object]
 
     is_factory: Optional[bool] = None

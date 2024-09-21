@@ -33,7 +33,7 @@ class ApplicationContext:
     def __run(self):
         self.class_scanner.flash()
         self.registry.flash()
-        self.factory.instantiate_object()
+        self.factory.instantiate_all_objects()
 
     async def initialize(self):
         await self._initialize()
@@ -43,7 +43,7 @@ class ApplicationContext:
 
     async def _initialize(self):
         _futures = []
-        for _, value in self.factory.singleton_factory.items():
+        for _, value in self.factory.singleton_factories.items():
             if isinstance(value, AsyncInitializingComponent):
                 _futures.append(self._run_async(value.initialize))
         for _, value in self.factory.singleton_objects.items():
@@ -54,7 +54,7 @@ class ApplicationContext:
 
     async def _shutdown(self):
         _futures = []
-        for _, value in self.factory.singleton_factory.items():
+        for _, value in self.factory.singleton_factories.items():
             if isinstance(value, AsyncInitializingComponent):
                 _futures.append(self._run_async(value.shutdown))
         for _, value in self.factory.singleton_objects.items():
