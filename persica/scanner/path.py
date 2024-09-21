@@ -73,4 +73,6 @@ class ClassPathScanner:
         try:
             return self.class_graph.get_modules_to_import(superclass_name)
         except NetworkXError as exc:
+            if "is not in the digraph" in str(exc):
+                return set()
             raise RuntimeError("Get Modules Error") from exc

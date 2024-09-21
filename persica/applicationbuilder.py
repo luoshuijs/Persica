@@ -38,7 +38,7 @@ class ApplicationBuilder:
         return self
 
     def build(self):
-        if self._scanner_packages is None:
+        if len(self._scanner_packages) == 0:
             raise RuntimeError("No scanner packages specified")
 
         factory = self._abstract_autowire_capable_factory_class()
