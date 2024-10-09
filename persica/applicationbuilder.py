@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Optional, Self, Type
+from typing import TYPE_CHECKING, Self
 
 from persica.application import Application
 from persica.context.application import ApplicationContext
@@ -11,17 +11,17 @@ if TYPE_CHECKING:
 
 
 class ApplicationBuilder:
-    _application_context_class: Type["ApplicationContext"] = ApplicationContext
-    _application_class: Type["Application"] = Application
-    _abstract_autowire_capable_factory_class: Type["AbstractAutowireCapableFactory"] = AbstractAutowireCapableFactory
-    _class_path_scanner_class: Type["ClassPathScanner"] = ClassPathScanner
-    _definition_registry: Type["DefinitionRegistry"] = DefinitionRegistry
+    _application_context_class: type["ApplicationContext"] = ApplicationContext
+    _application_class: type["Application"] = Application
+    _abstract_autowire_capable_factory_class: type["AbstractAutowireCapableFactory"] = AbstractAutowireCapableFactory
+    _class_path_scanner_class: type["ClassPathScanner"] = ClassPathScanner
+    _definition_registry: type["DefinitionRegistry"] = DefinitionRegistry
 
     def __init__(self):
-        self._loop: "Optional[AbstractEventLoop]" = None
-        self._scanner_packages: List[str] = []
+        self._loop: AbstractEventLoop | None = None
+        self._scanner_packages: list[str] = []
 
-    def set_application_context_class(self, __cls: Type["ApplicationContext"]) -> Self:
+    def set_application_context_class(self, __cls: type["ApplicationContext"]) -> Self:
         self._application_context_class = __cls
         return self
 
@@ -33,7 +33,7 @@ class ApplicationBuilder:
         self._scanner_packages.append(package)
         return self
 
-    def set_scanner_packages(self, packages: List[str]) -> Self:
+    def set_scanner_packages(self, packages: list[str]) -> Self:
         self._scanner_packages.extend(packages)
         return self
 
@@ -44,7 +44,7 @@ class ApplicationBuilder:
         factory = self._abstract_autowire_capable_factory_class()
         class_scanner = self._class_path_scanner_class(self._scanner_packages)
         registry = self._definition_registry(factory, class_scanner)
-        application: "Application" = self._application_class(
+        application: Application = self._application_class(
             factory=factory,
             class_scanner=class_scanner,
             registry=registry,

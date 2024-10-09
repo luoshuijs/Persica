@@ -1,5 +1,5 @@
 import ast
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from _ast import expr
@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 class ClassVisitor(ast.NodeVisitor):
     def __init__(self, graph: "ClassGraph", module_prefix: str):
         self.graph = graph
-        self.imports: Dict[str, str] = {}  # 映射本地名称到完整的模块路径
+        self.imports: dict[str, str] = {}  # 映射本地名称到完整的模块路径
         self.module_prefix = module_prefix  # 当前模块的完整路径
 
     def visit_ImportFrom(self, node):
@@ -51,7 +51,7 @@ class ClassVisitor(ast.NodeVisitor):
         self.graph.add_class(class_name, parent_names, self.module_prefix)
         self.generic_visit(node)
 
-    def resolve_full_name(self, node: "expr") -> Optional[str]:
+    def resolve_full_name(self, node: "expr") -> str | None:
         """
         解析父类的完整模块路径和类名。
         """
