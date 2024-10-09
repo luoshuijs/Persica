@@ -1,5 +1,3 @@
-
-
 class ObjectDefinition:
     """
     定义对象的结构，包括对象的类和是否是工厂。
