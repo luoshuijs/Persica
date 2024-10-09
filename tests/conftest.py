@@ -16,4 +16,4 @@ def event_loop(request):
 @pytest.fixture
 async def app():
     application = ApplicationBuilder().set_scanner_package("tests.test_package").build()
-    yield application
+    return application
