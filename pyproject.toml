@@ -101,7 +101,7 @@ ignore = [
     "TRY003", # Avoid specifying long messages outside the exception class
 ]
 [tool.ruff.lint.per-file-ignores]
-"tests/*.py" = ["B018"] # 	Found useless expression. Either assign it to a variable or remove it.
+"tests/*.py" = ["B018"] # Found useless expression. Either assign it to a variable or remove it.
 "tests/**.py" = [
     "ASYNC230", # Async functions should not open files with blocking methods like open
     "DTZ",
