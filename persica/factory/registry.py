@@ -45,7 +45,7 @@ class DefinitionRegistry:
                 self.import_module_status.setdefault(module_name, True)
             except Exception:
                 self.import_module_status.setdefault(module_name, False)
-                self._logger.error("import module error %s", module_name)   # noqa: TRY400
+                self._logger.error("import module error %s", module_name)  # noqa: TRY400
                 raise
 
     def _registry_class(self):
