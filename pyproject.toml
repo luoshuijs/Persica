@@ -14,6 +14,9 @@ dependencies = [
 [tool.uv]
 dev-dependencies = [
     "black>=24.8.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=5.0.0",
+    "pytest>=8.3.3",
     "ruff>=0.6.4",
 ]
 
@@ -97,4 +100,34 @@ ignore = [
     "PLR0913", # Too many arguments in function definition
     "PLR0917", # Too many positional arguments
     "TRY003", # Avoid specifying long messages outside the exception class
+]
+[tool.ruff.lint.per-file-ignores]
+"tests/*.py" = ["B018"] # Found useless expression. Either assign it to a variable or remove it.
+"tests/**.py" = [
+    "ASYNC230", # Async functions should not open files with blocking methods like open
+    "DTZ",
+    "ARG",
+    "ASYNC109", # Async function definition with a timeout parameter
+    "D",
+    "S",
+    "TRY"
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+log_format = "%(funcName)s - Line %(lineno)d - %(message)s"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.coverage.run]
+source = ["persica"]
+omit = [
+    "tests/",
+]
+
+[tool.coverage.report]
+exclude_also = [
+    "@overload",
+    "@abstractmethod",
+    "if TYPE_CHECKING:"
 ]
