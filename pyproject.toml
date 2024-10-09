@@ -61,13 +61,26 @@ select = [
     "W",  # pycodestyle warnings
     "F",  # pyflakes
     "I",  # isort
+    "PL", # pylint
     "B",  # flake8-bugbear
     "C4",  # flake8-comprehensions
     "UP",  # pyupgrade
+    "B", # flake8-bugbear
+    "PIE", # flake8-pie
+    "SIM", # flake8-simplify
+    "RET", # flake8-return
+    "RSE", # flake8-raise
+    "G", # flake8-logging-format
+    "ISC", # flake8-implicit-str-concat
+    "PT", # flake8-pytest-style
+    "ASYNC", # flake8-async
+    "TCH", # flake8-type-checking
+    "SLOT", # flake8-slots-slot
 ]
 ignore = [
     "E501",  # line too long, handled by black
     "B008",  # do not perform function calls in argument defaults
     "C901",  # too complex
     "W191", # indentation contains tabs
+    "PLR0913", # Too many arguments in function definition
 ]

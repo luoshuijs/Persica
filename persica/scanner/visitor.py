@@ -59,7 +59,7 @@ class ClassVisitor(ast.NodeVisitor):
             # 直接使用的类名，检查是否为导入的别名
             name = node.id
             return self.imports.get(name, f"{self.module_prefix}.{name}")
-        elif isinstance(node, ast.Attribute):
+        if isinstance(node, ast.Attribute):
             # 处理形如 module.ClassName 的父类
             names = []
             while isinstance(node, ast.Attribute):
@@ -74,7 +74,7 @@ class ClassVisitor(ast.NodeVisitor):
                     imported_base = self.imports[base_name]
                     full_name = ".".join([imported_base] + names[1:])
                 return full_name
-            elif isinstance(node, ast.Call):
+            if isinstance(node, ast.Call):
                 # 处理泛型类型，例如 `List[int]`
                 return self.resolve_full_name(node.func)
         elif isinstance(node, ast.Subscript):

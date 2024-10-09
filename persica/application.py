@@ -4,7 +4,6 @@ import signal
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
-from persica.scanner.path import ClassPathScanner
 from persica.utils.logging import get_logger
 
 if TYPE_CHECKING:
@@ -14,6 +13,7 @@ if TYPE_CHECKING:
     from persica.context.application import ApplicationContext
     from persica.factory.abstract import AbstractAutowireCapableFactory
     from persica.factory.registry import DefinitionRegistry
+    from persica.scanner.path import ClassPathScanner
 
 _LOGGER = get_logger(__name__, "DefinitionRegistry")
 
@@ -60,7 +60,7 @@ class Application:
 
     @staticmethod
     def _raise_system_exit() -> None:
-        raise SystemExit()
+        raise SystemExit
 
     async def initialize(self) -> None:
         await self.context.initialize()

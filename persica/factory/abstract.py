@@ -67,6 +67,7 @@ class AbstractAutowireCapableFactory:
             obj = self.singleton_objects.get(cls)
             if obj is None:
                 return self.create_object(cls)
+        return None
 
     def create_object(self, cls: type[object]) -> object:
         """
