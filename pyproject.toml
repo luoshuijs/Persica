@@ -117,3 +117,16 @@ testpaths = ["tests"]
 asyncio_mode = "auto"
 log_format = "%(funcName)s - Line %(lineno)d - %(message)s"
 asyncio_default_fixture_loop_scope = "function"
+
+[tool.coverage.run]
+source = ["persica"]
+omit = [
+    "tests/",
+]
+
+[tool.coverage.report]
+exclude_also = [
+    "@overload",
+    "@abstractmethod",
+    "if TYPE_CHECKING:"
+]
