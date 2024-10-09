@@ -13,12 +13,7 @@ def event_loop(request):
     return asyncio.get_event_loop_policy().new_event_loop()
 
 
-
 @pytest.fixture
 async def app():
-    application = (
-        ApplicationBuilder()
-        .set_scanner_package("tests.test_package")
-        .build()
-    )
+    application = ApplicationBuilder().set_scanner_package("tests.test_package").build()
     yield application
