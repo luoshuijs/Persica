@@ -32,5 +32,4 @@ class ClassGraph:
         """
         descendants = self.find_all_descendants(class_name)
         classes = descendants.union({class_name})
-        modules = {self.class_to_module[cls] for cls in classes if cls in self.class_to_module}
-        return modules
+        return {self.class_to_module[cls] for cls in classes if cls in self.class_to_module}

@@ -47,7 +47,7 @@ class ApplicationContext:
         components_by_order = defaultdict(list)
 
         for component_dict in [self.factory.singleton_factories, self.factory.singleton_objects]:
-            for _, value in component_dict.items():
+            for value in component_dict.values():
                 if isinstance(value, AsyncInitializingComponent):
                     method = getattr(value, method_name)
                     components_by_order[value.__order__].append(self._run_async(method))
@@ -60,4 +60,4 @@ class ApplicationContext:
         try:
             await func()
         except Exception as e:
-            self._logger.exception(e)
+            self._logger.exception("Run Error", exc_info=e)
