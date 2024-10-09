@@ -1,5 +1,3 @@
-from typing import Optional
-
 import pytest
 
 from persica.error import NoSuchParameterException
@@ -29,7 +27,7 @@ class Product:
 
 
 class ProductFactory(InterfaceFactory[Product]):
-    def get_object(self, obj: Optional[Product]) -> Product:
+    def get_object(self, obj: Product | None) -> Product:
         obj.name = "Product from Factory"
         return obj
 
