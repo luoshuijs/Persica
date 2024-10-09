@@ -43,10 +43,10 @@ class DefinitionRegistry:
             try:
                 import_module(module_name)
                 self.import_module_status.setdefault(module_name, True)
-            except Exception as e:
+            except Exception:
                 self.import_module_status.setdefault(module_name, False)
-                self._logger.info("import module error %s", module_name)
-                raise e
+                self._logger.error("import module error %s", module_name)   # noqa: TRY400
+                raise
 
     def _registry_class(self):
         self._registry_base_class(BaseComponent)

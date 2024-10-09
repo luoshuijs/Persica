@@ -54,7 +54,7 @@ class Application:
         except (KeyboardInterrupt, SystemExit):
             self._logger.info("Interrupt received! shutting down...")
         except Exception as e:
-            self._logger.error("Exception raised:", exc_info=e)
+            self._logger.exception("Exception raised:", exc_info=e)
         finally:
             self.loop.run_until_complete(self.shutdown())
 

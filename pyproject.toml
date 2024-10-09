@@ -62,10 +62,11 @@ select = [
     "F",  # pyflakes
     "I",  # isort
     "PL", # pylint
+    "UP",  # pyupgrade
+    "PERF", # Perflint
+    "FLY", # flynt
     "B",  # flake8-bugbear
     "C4",  # flake8-comprehensions
-    "UP",  # pyupgrade
-    "B", # flake8-bugbear
     "PIE", # flake8-pie
     "SIM", # flake8-simplify
     "RET", # flake8-return
@@ -76,6 +77,17 @@ select = [
     "ASYNC", # flake8-async
     "TCH", # flake8-type-checking
     "SLOT", # flake8-slots-slot
+    "PYI", # flake8-pyi
+    "Q", # flake8-quotes
+    "INP", # flake8-no-pep420
+    "YTT", # flake8-2020
+    "DTZ", # flake8-datetimez
+    "ARG", # flake8-unused-arguments
+    "S", # flake8-bandit
+    "ARG" , # flake8-print
+    "FURB", # refurb
+    "AIR", # Airflow
+    "TRY", # tryceratops
 ]
 ignore = [
     "E501",  # line too long, handled by black
@@ -83,4 +95,6 @@ ignore = [
     "C901",  # too complex
     "W191", # indentation contains tabs
     "PLR0913", # Too many arguments in function definition
+    "PLR0917", # Too many positional arguments
+    "TRY003", # Avoid specifying long messages outside the exception class
 ]

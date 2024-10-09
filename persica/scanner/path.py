@@ -62,7 +62,7 @@ class ClassPathScanner:
                 tree = ast.parse(source, filename=mod_spec.origin)
             except SyntaxError as exc:
                 # 处理语法错误
-                self._logger.error("ast parse error", exc_info=exc)
+                self._logger.exception("ast parse error", exc_info=exc)
                 continue
 
             # 创建 ClassVisitor 实例 并访问 AST

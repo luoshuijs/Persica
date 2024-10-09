@@ -123,8 +123,8 @@ class AbstractAutowireCapableFactory:
             # 获取构造函数签名，并设置 eval_str=True 以支持 Python 3.10+ 的字符串注解
             signature = inspect.signature(cls.__init__, eval_str=True)
         except ValueError as exc:
-            self._logger.error("Failed to retrieve __init__ signature for %s: %s", cls.__name__, exc)
-            raise exc
+            self._logger.exception("Failed to retrieve __init__ signature for %s: %s", cls.__name__, exc_info=exc)
+            raise
 
         params: dict[str, Any] = {}
         for name, parameter in signature.parameters.items():
