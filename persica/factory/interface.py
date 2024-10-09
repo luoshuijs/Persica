@@ -1,20 +1,20 @@
-from typing import Generic, Optional, Type, TypeVar, get_args
+from typing import Generic, TypeVar, get_args
 
 T = TypeVar("T", bound=object)
 
 
 class InterfaceFactory(Generic[T]):
     # 表示该工厂所管理的目标类
-    target_class: Type[T]
+    target_class: type[T]
 
-    def get_object(self, obj: Optional[T]) -> T:
+    def get_object(self, obj: T | None) -> T:
         """
         返回与传入对象相关的对象实例。可根据具体实现决定返回相同或不同的实例。
         """
         raise NotImplementedError("Subclasses must implement this method")
 
     @classmethod
-    def get_class(cls) -> Type[T]:
+    def get_class(cls) -> type[T]:
         """
         获取该工厂管理的目标类。
         """

@@ -1,5 +1,6 @@
 import inspect
-from typing import TYPE_CHECKING, Any, Dict, Iterable, Optional, Type, Union, cast
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Any, cast
 
 from persica.error import NoSuchParameterException
 from persica.factory.definition import ObjectDefinition
@@ -15,17 +16,17 @@ _LOGGER = get_logger(__name__, "AbstractAutowireCapableFactory")
 class AbstractAutowireCapableFactory:
     _logger: "Logger" = _LOGGER
     # 存储对象定义的映射表，key 为对象的类，value 为 ObjectDefinition
-    object_definitions: Dict[Type[object], ObjectDefinition] = {}
+    object_definitions: dict[type[object], ObjectDefinition] = {}
     # 工厂缓存，缓存已经创建的工厂对象，key 为对象的类，value 为工厂实例
-    factory_cache: Dict[Type[object], Union[InterfaceFactory]] = {}
+    factory_cache: dict[type[object], InterfaceFactory] = {}
     # 存储已经实例化的单例对象，key 为对象的类，value 为对象实例
-    singleton_objects: Dict[Type[object], object] = {}
+    singleton_objects: dict[type[object], object] = {}
     # 存储已经实例化的工厂对象，key 为工厂类，value 为工厂实例
-    singleton_factories: Dict[Type[InterfaceFactory], InterfaceFactory] = {}
+    singleton_factories: dict[type[InterfaceFactory], InterfaceFactory] = {}
     # 存储外部可注入的对象，key 为对象的类，value 为对象实例
-    external_objects: Dict[Type[object], object] = {}
+    external_objects: dict[type[object], object] = {}
 
-    def __init__(self, external_objects: Optional[Iterable[object]] = None):
+    def __init__(self, external_objects: Iterable[object] | None = None):
         """
         初始化工厂，允许外部传入可解析的对象，并将它们存入 external_objects。
         """
@@ -46,7 +47,7 @@ class AbstractAutowireCapableFactory:
         for definition in self.object_definitions.values():
             self.get_object(definition.class_object)
 
-    def get_object(self, cls: Type[object]):
+    def get_object(self, cls: type[object]):
         """
         根据类获取对象实例，如果未创建则调用 create_object 方法创建。
         """
@@ -57,7 +58,7 @@ class AbstractAutowireCapableFactory:
 
         if definition.is_factory:
             # 如果对象定义是工厂，则获取或创建工厂对象
-            cls = cast(Type[InterfaceFactory], cls)
+            cls = cast(type[InterfaceFactory], cls)
             obj = self.singleton_factories.get(cls)
             if obj is None:
                 return self.create_object(cls)
@@ -67,7 +68,7 @@ class AbstractAutowireCapableFactory:
             if obj is None:
                 return self.create_object(cls)
 
-    def create_object(self, cls: Type[object]) -> object:
+    def create_object(self, cls: type[object]) -> object:
         """
         创建一个对象实例，支持依赖注入和工厂管理。
         """
@@ -88,7 +89,7 @@ class AbstractAutowireCapableFactory:
         self.singleton_objects[cls] = obj
         return obj
 
-    def _find_factory_for_class(self, cls: Type[object]) -> Optional[InterfaceFactory]:
+    def _find_factory_for_class(self, cls: type[object]) -> InterfaceFactory | None:
         """
         查找与给定类对应的工厂，如果没有找到则返回 None。
         """
@@ -98,7 +99,7 @@ class AbstractAutowireCapableFactory:
             # 遍历 object_definitions 查找是否有与该类对应的工厂
             for key, definition in self.object_definitions.items():
                 if definition.is_factory:
-                    factory_cls = cast(Type[InterfaceFactory], key)
+                    factory_cls = cast(type[InterfaceFactory], key)
                     # 判断该类是否是工厂管理的类或其子类
                     if issubclass(cls, factory_cls.get_class()):
                         factory_instance = self.singleton_factories.get(factory_cls)
@@ -113,7 +114,7 @@ class AbstractAutowireCapableFactory:
                         break
         return factory
 
-    def _build_constructor_params(self, cls: Type[object]) -> Dict[str, Any]:
+    def _build_constructor_params(self, cls: type[object]) -> dict[str, Any]:
         """
         构建构造函数参数，支持依赖注入和默认值处理。
         """
@@ -124,7 +125,7 @@ class AbstractAutowireCapableFactory:
             self._logger.error("Failed to retrieve __init__ signature for %s: %s", cls.__name__, exc)
             raise exc
 
-        params: Dict[str, Any] = {}
+        params: dict[str, Any] = {}
         for name, parameter in signature.parameters.items():
             # 跳过 'self', 'args', 'kwargs'
             if name in ("self", "args", "kwargs"):
