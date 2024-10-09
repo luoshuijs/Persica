@@ -1,7 +1,8 @@
 import asyncio
 import platform
 import signal
-from typing import TYPE_CHECKING, Optional, Sequence, Type
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 from persica.scanner.path import ClassPathScanner
 from persica.utils.logging import get_logger
@@ -25,8 +26,8 @@ class Application:
         factory: "AbstractAutowireCapableFactory",
         class_scanner: "ClassPathScanner",
         registry: "DefinitionRegistry",
-        context_class: Type["ApplicationContext"],
-        loop: "Optional[AbstractEventLoop]" = None,
+        context_class: type["ApplicationContext"],
+        loop: "AbstractEventLoop | None" = None,
     ) -> None:
         self.loop = loop or asyncio.get_event_loop()
         self.factory = factory
@@ -41,7 +42,7 @@ class Application:
         self.context.run()
         self._run()
 
-    def _run(self, stop_signals: Optional[Sequence[int]] = None) -> None:
+    def _run(self, stop_signals: Sequence[int] | None = None) -> None:
         if platform.system() != "Windows":
             stop_signals = (signal.SIGINT, signal.SIGTERM, signal.SIGABRT)
         if stop_signals is not None:

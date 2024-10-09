@@ -1,5 +1,5 @@
 from importlib import import_module
-from typing import TYPE_CHECKING, Dict, Optional, Type
+from typing import TYPE_CHECKING
 
 from persica.factory.component import BaseComponent
 from persica.factory.definition import ObjectDefinition
@@ -17,7 +17,7 @@ _LOGGER = get_logger(__name__, "DefinitionRegistry")
 
 class DefinitionRegistry:
     _logger: "Logger" = _LOGGER
-    import_module_status: Dict[str, bool] = {}
+    import_module_status: dict[str, bool] = {}
 
     def __init__(self, factory: "AbstractAutowireCapableFactory", class_scanner: "ClassPathScanner"):
         self.factory = factory
@@ -52,7 +52,7 @@ class DefinitionRegistry:
         self._registry_base_class(BaseComponent)
         self._registry_base_class(InterfaceFactory, True)
 
-    def _registry_base_class(self, _class: Type[object], is_factory: Optional[bool] = None):
+    def _registry_base_class(self, _class: type[object], is_factory: bool | None = None):
         for _cls in _class.__subclasses__():
             self.factory.object_definitions.setdefault(_cls, ObjectDefinition(_cls, is_factory))
             self._registry_base_class(_cls)

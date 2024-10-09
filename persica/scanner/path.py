@@ -1,7 +1,7 @@
 import ast
 from importlib.util import find_spec
 from pkgutil import walk_packages
-from typing import TYPE_CHECKING, List, Optional, Set
+from typing import TYPE_CHECKING
 
 from networkx import NetworkXError
 
@@ -18,13 +18,13 @@ if TYPE_CHECKING:
 class ClassPathScanner:
     _logger: "Logger" = _LOGGER
 
-    def __init__(self, default_base_packages: Optional[List[str]] = None):
+    def __init__(self, default_base_packages: list[str] | None = None):
         self.class_graph = ClassGraph()
         if default_base_packages is None:
             default_base_packages = []
         self.default_base_packages = default_base_packages
 
-    def flash(self, base_packages: Optional[List[str]] = None):
+    def flash(self, base_packages: list[str] | None = None):
         if base_packages is None:
             base_packages = []
         base_packages = base_packages or self.default_base_packages
@@ -52,9 +52,9 @@ class ClassPathScanner:
 
             # 读取模块的源代码
             try:
-                with open(mod_spec.origin, "r", encoding="utf-8") as file:
+                with open(mod_spec.origin, encoding="utf-8") as file:
                     source = file.read()
-            except (IOError, FileNotFoundError):
+            except (OSError, FileNotFoundError):
                 continue
 
             # 解析源代码为 AST
@@ -69,7 +69,7 @@ class ClassPathScanner:
             visitor = ClassVisitor(self.class_graph, module_info.name)
             visitor.visit(tree)
 
-    def get_modules_to_import(self, superclass_name: str) -> Set[str]:
+    def get_modules_to_import(self, superclass_name: str) -> set[str]:
         try:
             return self.class_graph.get_modules_to_import(superclass_name)
         except NetworkXError as exc:

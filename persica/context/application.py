@@ -1,6 +1,7 @@
 import asyncio
 from collections import defaultdict
-from typing import TYPE_CHECKING, Any, Callable, Coroutine
+from collections.abc import Callable, Coroutine
+from typing import TYPE_CHECKING, Any
 
 from persica.factory.component import AsyncInitializingComponent
 from persica.utils.logging import get_logger
