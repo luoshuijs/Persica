@@ -21,8 +21,8 @@ class ApplicationBuilder:
         self._loop: AbstractEventLoop | None = None
         self._scanner_packages: list[str] = []
 
-    def set_application_context_class(self, __cls: type["ApplicationContext"]) -> Self:
-        self._application_context_class = __cls
+    def set_application_context_class(self, _cls: type["ApplicationContext"]) -> Self:
+        self._application_context_class = _cls
         return self
 
     def set_loop(self, loop: "AbstractEventLoop") -> Self:
