@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 from persica.factory.component import BaseComponent
 from persica.factory.definition import ObjectDefinition
 from persica.factory.interface import InterfaceFactory
+from persica.scanner.graph import LoadOrderConflictError
 from persica.utils.logging import get_logger
 
 if TYPE_CHECKING:
@@ -26,6 +27,7 @@ class DefinitionRegistry:
     def flash(self):
         self._import_module()
         self._registry_class()
+        self._check_class()
 
     def _import_module(self):
         for module_name in self.class_scanner.get_modules_to_import("persica.factory.component.BaseComponent"):
@@ -54,5 +56,17 @@ class DefinitionRegistry:
 
     def _registry_base_class(self, _class: type[object], is_factory: bool | None = None):
         for _cls in _class.__subclasses__():
-            self.factory.object_definitions.setdefault(_cls, ObjectDefinition(_cls, is_factory))
+            definition = ObjectDefinition(_cls, is_factory)
+            if hasattr(_cls, "__order__"):
+                __order__: int = _cls.__order__
+                package_name = __order__.__module__
+                class_name = f"{package_name}.{_cls.__name__}"
+                self.class_scanner.class_graph.set_order(class_name, __order__)
+                self.factory.order_definitions.setdefault(__order__, definition)
+            self.factory.object_definitions.setdefault(_cls, definition)
             self._registry_base_class(_cls)
+
+    def _check_class(self):
+        conflicts = self.class_scanner.class_graph.check_conflict()
+        if conflicts:
+            raise LoadOrderConflictError(conflicts)

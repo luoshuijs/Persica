@@ -15,6 +15,8 @@ _LOGGER = get_logger(__name__, "AbstractAutowireCapableFactory")
 
 class AbstractAutowireCapableFactory:
     _logger: "Logger" = _LOGGER
+    # 存储对象定义对应的加载顺序的映射表，key 为顺序，value 为 ObjectDefinition
+    order_definitions: dict[int, ObjectDefinition] = {}
     # 存储对象定义的映射表，key 为对象的类，value 为 ObjectDefinition
     object_definitions: dict[type[object], ObjectDefinition] = {}
     # 工厂缓存，缓存已经创建的工厂对象，key 为对象的类，value 为工厂实例
@@ -44,6 +46,9 @@ class AbstractAutowireCapableFactory:
         实例化 object_definitions 中所有的对象。
         """
         self._logger.info("Instantiating all objects")
+        sorted_definition = sorted(self.order_definitions.items())
+        for _, value in sorted_definition:
+            self.get_object(value.class_object)
         for definition in self.object_definitions.values():
             self.get_object(definition.class_object)
 
