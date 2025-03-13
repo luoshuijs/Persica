@@ -1,5 +1,10 @@
 import sys
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
+
+from persica.utils.logging import get_logger
+
+if TYPE_CHECKING:
+    from logging import Logger
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -7,7 +12,11 @@ else:
     import toml as tomllib
 
 
+_LOGGER = get_logger(__name__, "PyProjectConfig")
+
+
 class PyProjectConfig:
+    _logger: "Logger" = _LOGGER
     data: ClassVar[dict] = {}
 
     def __init__(self):
@@ -20,7 +29,7 @@ class PyProjectConfig:
                 cls.data = tomllib.load(f)
         except (FileNotFoundError, tomllib.TOMLDecodeError) as e:
             # 处理文件不存在或解析错误
-            print(f"Error loading pyproject.toml: {e}")
+            cls._logger.error("Error loading pyproject.toml", exc_info=e)
             cls.data = {}
 
     def get_import_packages(self):
