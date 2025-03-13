@@ -12,7 +12,6 @@ class BaseComponent:
 
 
 class AsyncInitializingComponent(BaseComponent):
-
     async def initialize(self):
         pass
 
