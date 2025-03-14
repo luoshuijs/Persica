@@ -27,7 +27,7 @@ class PyProjectConfig:
         try:
             with open("pyproject.toml", "rb") as f:
                 cls.data = tomllib.load(f)
-        except FileNotFoundError: # 文件不存在跳过解析
+        except FileNotFoundError:  # 文件不存在跳过解析
             cls._logger.info("pyproject.toml not found, skip reload configuration")
         except tomllib.TOMLDecodeError as e:
             cls._logger.error("Error loading pyproject.toml", exc_info=e)
