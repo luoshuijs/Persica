@@ -63,7 +63,7 @@ class AbstractAutowireCapableFactory:
 
         if definition.is_factory:
             # 如果对象定义是工厂，则获取或创建工厂对象
-            cls = cast(type[InterfaceFactory], cls)
+            cls = cast("type[InterfaceFactory]", cls)
             obj = self.singleton_factories.get(cls)
             if obj is None:
                 return self.create_object(cls)
@@ -105,13 +105,13 @@ class AbstractAutowireCapableFactory:
             # 遍历 object_definitions 查找是否有与该类对应的工厂
             for key, definition in self.object_definitions.items():
                 if definition.is_factory:
-                    factory_cls = cast(type[InterfaceFactory], key)
+                    factory_cls = cast("type[InterfaceFactory]", key)
                     # 判断该类是否是工厂管理的类或其子类
                     if issubclass(cls, factory_cls.get_class()):
                         factory_instance = self.singleton_factories.get(factory_cls)
                         if factory_instance is None:
                             factory_instance = self.create_object(factory_cls)
-                            factory = cast(InterfaceFactory, factory_instance)
+                            factory = cast("InterfaceFactory", factory_instance)
                         else:
                             factory = factory_instance
                         # 缓存工厂实例
