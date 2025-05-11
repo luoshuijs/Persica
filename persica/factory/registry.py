@@ -59,7 +59,7 @@ class DefinitionRegistry:
             definition = ObjectDefinition(_cls, is_factory)
             if hasattr(_cls, "__order__"):
                 __order__: int = _cls.__order__
-                package_name = __order__.__module__
+                package_name = _cls.__module__
                 class_name = f"{package_name}.{_cls.__name__}"
                 self.class_scanner.class_graph.set_order(class_name, __order__)
                 self.factory.order_definitions.setdefault(__order__, definition)
