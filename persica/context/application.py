@@ -49,8 +49,9 @@ class ApplicationContext:
         for component_dict in [self.factory.singleton_factories, self.factory.singleton_objects]:
             for value in component_dict.values():
                 if isinstance(value, AsyncInitializingComponent):
-                    method = getattr(value, method_name)
-                    components_by_order[value.__order__].append(self._run_async(method))
+                    method = getattr(value, method_name, None)
+                    if method:
+                        components_by_order[value.__order__].append(self._run_async(method))
 
         for order in sorted(components_by_order.keys()):
             tasks = components_by_order[order]
