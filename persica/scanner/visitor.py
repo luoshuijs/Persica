@@ -23,7 +23,7 @@ class ClassVisitor(ast.NodeVisitor):
                 # 对于 'from module import *'，可以根据实际需求处理
                 pass
             else:
-                local_name = alias.asname if alias.asname else alias.name
+                local_name = alias.asname or alias.name
                 full_name = f"{module}.{alias.name}"
                 self.imports[local_name] = full_name
         self.generic_visit(node)
@@ -33,7 +33,7 @@ class ClassVisitor(ast.NodeVisitor):
         处理形如 `import module` 或 `import module as mod` 的导入语句。
         """
         for alias in node.names:
-            local_name = alias.asname if alias.asname else alias.name
+            local_name = alias.asname or alias.name
             self.imports[local_name] = alias.name  # 直接存储模块的完整路径
         self.generic_visit(node)
 
