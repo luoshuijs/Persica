@@ -20,11 +20,14 @@ class ClassPathScanner:
 
     def __init__(self, default_base_packages: list[str] | None = None):
         self.class_graph = ClassGraph()
+        self.scanned_modules: list[str] = []
         if default_base_packages is None:
             default_base_packages = []
         self.default_base_packages = default_base_packages
 
     def flash(self, base_packages: list[str] | None = None):
+        self.class_graph = ClassGraph()
+        self.scanned_modules = []
         if base_packages is None:
             base_packages = []
         base_packages = base_packages or self.default_base_packages
@@ -34,40 +37,51 @@ class ClassPathScanner:
 
     def parse_base_package(self, base_package: str):
         package_spec = find_spec(base_package)
-        if package_spec is None or package_spec.submodule_search_locations is None:
+        if package_spec is None:
             return
 
-        # 使用 walk_packages 遍历包中的所有模块
+        is_package = package_spec.submodule_search_locations is not None
+        if package_spec.origin is not None:
+            self._parse_module(base_package, package_spec.origin, is_package=is_package)
+
+        if not is_package:
+            return
+
         for module_info in walk_packages(package_spec.submodule_search_locations, prefix=base_package + "."):
-            # 获取模块规范
             mod_spec = find_spec(module_info.name)
             if mod_spec is None or mod_spec.origin is None:
                 continue
 
-            # 跳过内置模块和没有源文件的模块
             if mod_spec.origin == "built-in":
                 continue
 
-            self._logger.info("Find module: %s", module_info.name)
+            self._parse_module(
+                module_info.name,
+                mod_spec.origin,
+                is_package=mod_spec.submodule_search_locations is not None,
+            )
 
-            # 读取模块的源代码
-            try:
-                with open(mod_spec.origin, encoding="utf-8") as file:
-                    source = file.read()
-            except (OSError, FileNotFoundError):
-                continue
+    def _parse_module(self, module_name: str, origin: str, is_package: bool):
+        if origin == "built-in":
+            return
 
-            # 解析源代码为 AST
-            try:
-                tree = ast.parse(source, filename=mod_spec.origin)
-            except SyntaxError as exc:
-                # 处理语法错误
-                self._logger.error("ast parse error", exc_info=exc)
-                continue
+        self._logger.info("Find module: %s", module_name)
+        self.scanned_modules.append(module_name)
 
-            # 创建 ClassVisitor 实例 并访问 AST
-            visitor = ClassVisitor(self.class_graph, module_info.name)
-            visitor.visit(tree)
+        try:
+            with open(origin, encoding="utf-8") as file:
+                source = file.read()
+        except (OSError, FileNotFoundError):
+            return
+
+        try:
+            tree = ast.parse(source, filename=origin)
+        except SyntaxError as exc:
+            self._logger.error("ast parse error", exc_info=exc)
+            return
+
+        visitor = ClassVisitor(self.class_graph, module_name, is_package=is_package)
+        visitor.visit(tree)
 
     def get_modules_to_import(self, superclass_name: str) -> set[str]:
         try:

@@ -8,32 +8,47 @@ if TYPE_CHECKING:
 
 
 class ClassVisitor(ast.NodeVisitor):
-    def __init__(self, graph: "ClassGraph", module_prefix: str):
+    def __init__(self, graph: "ClassGraph", module_prefix: str, is_package: bool = False):
         self.graph = graph
         self.imports: dict[str, str] = {}  # 映射本地名称到完整的模块路径
         self.module_prefix = module_prefix  # 当前模块的完整路径
+        self.is_package = is_package
 
     def visit_ImportFrom(self, node):
         """
         处理形如 `from module import ClassName` 的导入语句。
         """
-        module = node.module  # 导入的模块，例如 'a.b.c'
+        module = self._resolve_import_from_module(node)
         for alias in node.names:
             if alias.name == "*":
                 # 对于 'from module import *'，可以根据实际需求处理
                 pass
             else:
-                local_name = alias.asname if alias.asname else alias.name
+                local_name = alias.asname or alias.name
                 full_name = f"{module}.{alias.name}"
                 self.imports[local_name] = full_name
         self.generic_visit(node)
+
+    def _resolve_import_from_module(self, node: ast.ImportFrom) -> str:
+        module = node.module or ""
+        if node.level == 0:
+            return module
+
+        package_parts = self.module_prefix.split(".") if self.is_package else self.module_prefix.split(".")[:-1]
+        upward_levels = max(node.level - 1, 0)
+        if upward_levels:
+            package_parts = package_parts[:-upward_levels]
+
+        if module:
+            package_parts.extend(module.split("."))
+        return ".".join(package_parts)
 
     def visit_Import(self, node):
         """
         处理形如 `import module` 或 `import module as mod` 的导入语句。
         """
         for alias in node.names:
-            local_name = alias.asname if alias.asname else alias.name
+            local_name = alias.asname or alias.name
             self.imports[local_name] = alias.name  # 直接存储模块的完整路径
         self.generic_visit(node)
 

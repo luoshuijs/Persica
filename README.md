@@ -16,6 +16,31 @@
 The design inspiration for this framework comes from the [Spring Framework](https://github.com/spring-projects/). 
 I am especially impressed by its powerful automatic assembly feature.
 
+## Quick Start
+`build()` is synchronous and only constructs the application object. `run()` uses the configured event loop, creating one only when needed, and keeps the application alive until it is stopped. If you pass your own loop, it must not already be running.
+
+```python
+from persica.applicationbuilder import ApplicationBuilder
+
+app = ApplicationBuilder().set_scanner_package("example_app").build()
+
+# Blocks until the application is stopped, for example with Ctrl+C.
+app.run()
+```
+
+```python
+# example_app/components.py
+from persica.factory.component import AsyncInitializingComponent
+
+
+class HelloComponent(AsyncInitializingComponent):
+    async def initialize(self):
+        print("Persica is running")
+
+    async def shutdown(self):
+        print("Persica stopped")
+```
+
 ## Future
 - [ ] Support full path scanning
 - [ ] Support custom factory assembly

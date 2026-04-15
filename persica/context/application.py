@@ -1,7 +1,6 @@
 import asyncio
 from collections import defaultdict
-from collections.abc import Callable, Coroutine
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from persica.factory.component import AsyncInitializingComponent
 from persica.utils.logging import get_logger
@@ -41,9 +40,9 @@ class ApplicationContext:
         await self._process_components("initialize")
 
     async def shutdown(self) -> None:
-        await self._process_components("shutdown")
+        await self._process_components("shutdown", reverse=True, collect_errors=True)
 
-    async def _process_components(self, method_name: str):
+    async def _process_components(self, method_name: str, *, reverse: bool = False, collect_errors: bool = False):
         components_by_order = defaultdict(list)
 
         for component_dict in [self.factory.singleton_factories, self.factory.singleton_objects]:
@@ -51,14 +50,25 @@ class ApplicationContext:
                 if isinstance(value, AsyncInitializingComponent):
                     method = getattr(value, method_name, None)
                     if method:
-                        components_by_order[value.__order__].append(self._run_async(method))
+                        components_by_order[value.__order__].append(method)
 
-        for order in sorted(components_by_order.keys()):
-            tasks = components_by_order[order]
-            await asyncio.gather(*tasks)
+        errors: list[BaseException] = []
+        for order in sorted(components_by_order.keys(), reverse=reverse):
+            tasks = [asyncio.create_task(method()) for method in components_by_order[order]]
+            try:
+                results = await asyncio.gather(*tasks, return_exceptions=collect_errors)
+            except BaseException:
+                for task in tasks:
+                    if not task.done():
+                        task.cancel()
+                await asyncio.gather(*tasks, return_exceptions=True)
+                raise
+            if not collect_errors:
+                continue
+            for result in results:
+                if isinstance(result, BaseException):
+                    errors.append(result)
+                    self._logger.exception("Run Error", exc_info=result)
 
-    async def _run_async(self, func: Callable[..., Coroutine[Any, Any, Any]]):
-        try:
-            await func()
-        except Exception as e:
-            self._logger.exception("Run Error", exc_info=e)
+        if errors:
+            raise RuntimeError(f"Application shutdown failed with {len(errors)} error(s)") from errors[-1]
