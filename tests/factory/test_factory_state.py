@@ -1,3 +1,4 @@
+from persica import Phase
 from persica.factory.abstract import AbstractAutowireCapableFactory
 from persica.factory.component import BaseComponent
 from persica.factory.definition import ObjectDefinition
@@ -37,6 +38,15 @@ class RegisteredOrderedConsumer(BaseComponent):
         self.second = second
 
 
+class RegisteredPhasedDependency(BaseComponent, phase=Phase.REPOSITORY):
+    pass
+
+
+class RegisteredPhasedConsumer(BaseComponent, phase=Phase.SERVICE):
+    def __init__(self, dependency: RegisteredPhasedDependency):
+        self.dependency = dependency
+
+
 class RegisteredFactoryProduct:
     pass
 
@@ -47,6 +57,10 @@ class RegisteredFactoryBase(InterfaceFactory[RegisteredFactoryProduct]):
 
 
 class RegisteredFactoryChild(RegisteredFactoryBase):
+    pass
+
+
+class StalePublishedResource:
     pass
 
 
@@ -113,6 +127,24 @@ def test_registry_registration_supports_ordered_component_instantiation():
     assert isinstance(consumer.second, RegisteredOrderedDependencyTwo)
 
 
+def test_registry_registration_supports_phased_component_instantiation():
+    factory = AbstractAutowireCapableFactory()
+    scanner = ClassPathScanner(default_base_packages=["tests.factory"])
+    scanner.flash()
+    registry = DefinitionRegistry(factory, scanner)
+
+    registry.flash()
+    factory.instantiate_all_objects()
+
+    repository_bucket = factory.order_definitions[Phase.REPOSITORY]
+    service_bucket = factory.order_definitions[Phase.SERVICE]
+    assert {definition.class_object for definition in repository_bucket} == {RegisteredPhasedDependency}
+    assert {definition.class_object for definition in service_bucket} == {RegisteredPhasedConsumer}
+    consumer = factory.singleton_objects.get(RegisteredPhasedConsumer)
+    assert isinstance(consumer, RegisteredPhasedConsumer)
+    assert isinstance(consumer.dependency, RegisteredPhasedDependency)
+
+
 def test_definition_registry_import_state_is_instance_scoped():
     factory = AbstractAutowireCapableFactory()
     scanner = ClassPathScanner(default_base_packages=[])
@@ -154,3 +186,18 @@ def test_registry_flash_replaces_factory_registrations_between_scan_roots():
     assert factory.object_definitions == {RootScannedComponent: factory.object_definitions[RootScannedComponent]}
     assert REGISTERED_ORDER not in factory.order_definitions
     assert {definition.class_object for definition in factory.order_definitions[0]} == {RootScannedComponent}
+
+
+def test_registry_flash_clears_published_resources():
+    factory = AbstractAutowireCapableFactory()
+    scanner = ClassPathScanner(default_base_packages=["tests.sample_registry_root"])
+    scanner.flash()
+    registry = DefinitionRegistry(factory, scanner)
+    stale_resource = StalePublishedResource()
+    factory.published_objects = {StalePublishedResource: [stale_resource]}
+    factory.published_object_sequence = [stale_resource]
+
+    registry.flash()
+
+    assert StalePublishedResource not in factory.published_objects
+    assert factory.published_object_sequence == []
