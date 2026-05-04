@@ -41,6 +41,59 @@ class HelloComponent(AsyncInitializingComponent):
         print("Persica stopped")
 ```
 
+App-level resources can be published through `Application.provide_objects()` and injected the same way as component-published resources. They are available as soon as the app is built, before `run()` starts creating components.
+
+```python
+# example_app/application.py
+from persica import inject
+from persica.application import Application
+from persica.applicationbuilder import ApplicationBuilder
+
+
+class GreetingService:
+    def greet(self) -> str:
+        return "hello from the application"
+
+
+class ExampleApplication(Application):
+    def __init__(self, *args, **kwargs):
+        self.greeting_service = GreetingService()
+        super().__init__(*args, **kwargs)
+
+    def provide_objects(self) -> list[GreetingService]:
+        return [self.greeting_service]
+
+
+class ExampleApplicationBuilder(ApplicationBuilder):
+    _application_class = ExampleApplication
+```
+
+```python
+# example_app/components.py
+from persica import inject
+from persica.factory.component import AsyncInitializingComponent
+
+from example_app.application import ExampleApplicationBuilder, GreetingService
+
+
+class GreetingPrinter(AsyncInitializingComponent):
+    greeting_service: GreetingService = inject()
+
+    async def initialize(self):
+        print(self.greeting_service.greet())
+```
+
+```python
+# example_app/main.py
+from example_app.application import ExampleApplicationBuilder
+
+
+app = ExampleApplicationBuilder().set_scanner_package("example_app").build()
+
+# build() is still synchronous; run() starts initialization and blocks.
+app.run()
+```
+
 ## Future
 - [ ] Support full path scanning
 - [ ] Support custom factory assembly

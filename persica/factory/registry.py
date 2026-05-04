@@ -32,6 +32,10 @@ class DefinitionRegistry:
         self.factory.factory_cache = {}
         self.factory.singleton_objects = {}
         self.factory.singleton_factories = {}
+        self.factory.published_objects = {}
+        self.factory.published_object_sequence = []
+        for external_object in self.factory.external_objects.values():
+            self.factory._publish_objects(external_object)
         self._import_module()
         self._registry_class()
         self._check_class()

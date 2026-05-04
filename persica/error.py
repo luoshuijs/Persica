@@ -4,3 +4,10 @@ class NoSuchParameterException(Exception):
 
 class AmbiguousDependencyException(Exception):
     pass
+
+
+class InvalidInjectionConfigurationError(Exception):
+    pass
+
+
+InvalidInjectionConfigurationException = InvalidInjectionConfigurationError

@@ -38,6 +38,10 @@ class Application:
         self.context = context_class(factory=self.factory, class_scanner=self.class_scanner, registry=self.registry)
         self.factory.add_external_object(self.context)
         self.factory.add_external_object(self)
+        self.factory._publish_objects(self)
+
+    def provide_objects(self) -> list[object]:
+        return []
 
     def run(self) -> None:
         self._logger.info("Application Run")
