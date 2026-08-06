@@ -2,6 +2,7 @@ import asyncio
 from collections import defaultdict
 from typing import TYPE_CHECKING
 
+from persica.context.config import PyProjectConfig
 from persica.factory.component import AsyncInitializingComponent
 from persica.utils.logging import get_logger
 
@@ -27,11 +28,14 @@ class ApplicationContext:
         self.class_scanner = class_scanner
         self.factory = factory
         self.registry = registry
+        self.py_project_config = PyProjectConfig()
 
     def run(self):
         self.__run()
 
     def __run(self):
+        package = self.py_project_config.get_import_packages()
+        self.class_scanner.default_base_packages.extend(package)
         self.class_scanner.flash()
         self.registry.flash()
         self.factory.instantiate_all_objects()
